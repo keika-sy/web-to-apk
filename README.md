@@ -73,7 +73,4 @@ python3 scripts/customize.py --url https://contoh.com --name "App Saya" \
 - Keystore v1 adalah keystore aplikasi mandiri, bukan Play App Signing —
   APK ini untuk distribusi langsung (sideload), bukan Play Store
 
-> Catatan setup: file workflow Actions sumbernya disimpan di `ci/build-apk.yml`
-> dan akan dipasang ke `.github/workflows/build-apk.yml` begitu token GitHub
-> pemilik repo punya scope `workflow` (token saat ini hanya scope `repo`,
-> GitHub menolak push file workflow tanpa scope itu).
+Workflow Actions aktif di `.github/workflows/build-apk.yml` (salinan sumber juga ada di `ci/`).
