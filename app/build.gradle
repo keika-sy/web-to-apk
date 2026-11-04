@@ -1,0 +1,39 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.webtoapk.template'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "__APP_ID__"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("webtoapk.jks")
+            storePassword System.getenv("KEYSTORE_PASSWORD") ?: "webtoapk-v1"
+            keyAlias "webtoapk"
+            keyPassword System.getenv("KEYSTORE_PASSWORD") ?: "webtoapk-v1"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (file("webtoapk.jks").exists()) {
+                signingConfig signingConfigs.release
+            } else {
+                signingConfig signingConfigs.debug
+            }
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
