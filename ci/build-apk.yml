@@ -1,3 +1,4 @@
+# Web to APK — build workflow (dipicu manual / lewat form web)
 name: Build APK
 
 on:
@@ -25,6 +26,30 @@ on:
         required: false
         type: string
         default: "#2563EB"
+      fullscreen:
+        description: "Mode fullscreen (status bar disembunyikan)"
+        required: false
+        type: choice
+        options: ["false", "true"]
+        default: "false"
+      splash:
+        description: "Splash screen saat membuka app"
+        required: false
+        type: choice
+        options: ["true", "false"]
+        default: "true"
+      orientation:
+        description: "Orientasi layar"
+        required: false
+        type: choice
+        options: ["unspecified", "portrait", "landscape"]
+        default: "unspecified"
+      zoom:
+        description: "Izinkan pinch-zoom di WebView"
+        required: false
+        type: choice
+        options: ["true", "false"]
+        default: "true"
 
 permissions:
   contents: write
@@ -43,13 +68,17 @@ jobs:
           java-version: "17"
           cache: gradle
 
-      - name: Inject URL / nama / package / warna
+      - name: Inject konfigurasi ke template
         run: |
           python3 scripts/customize.py \
             --url "${{ inputs.web_url }}" \
             --name "${{ inputs.app_name }}" \
             --package "${{ inputs.package_id }}" \
-            --color "${{ inputs.theme_color }}"
+            --color "${{ inputs.theme_color }}" \
+            --fullscreen "${{ inputs.fullscreen }}" \
+            --splash "${{ inputs.splash }}" \
+            --orientation "${{ inputs.orientation }}" \
+            --zoom "${{ inputs.zoom }}"
 
       - name: Pakai icon custom (kalau diisi)
         if: ${{ inputs.icon_url != '' }}
@@ -99,7 +128,9 @@ jobs:
 
           - App: ${{ inputs.app_name }}
           - URL: ${{ inputs.web_url }}
-          - Package: ${{ inputs.package_id }}"
+          - Package: ${{ inputs.package_id }}
+          - Warna: ${{ inputs.theme_color }}
+          - Fullscreen: ${{ inputs.fullscreen }} | Splash: ${{ inputs.splash }} | Orientasi: ${{ inputs.orientation }} | Zoom: ${{ inputs.zoom }}"
           gh release create "$TAG" out/*.apk --title "${{ inputs.app_name }} (build ${{ github.run_number }})" --notes "$NOTES" \
             || gh release upload "$TAG" out/*.apk --clobber
           {

@@ -4,69 +4,271 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Web to APK — Ubah Website Jadi Aplikasi Android</title>
+<meta name="description" content="Isi form, GitHub Actions yang build, download APK-nya. Gratis.">
+<meta name="theme-color" content="#2563EB">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <style>
-  :root { --tema:#2563EB; --gelap:#0f172a; --abu:#64748b; }
-  * { box-sizing:border-box; }
-  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:#f1f5f9; color:var(--gelap); }
-  .wrap { max-width:560px; margin:0 auto; padding:32px 16px 64px; }
-  header { text-align:center; margin-bottom:24px; }
-  header .logo { font-size:44px; }
-  h1 { margin:8px 0 4px; font-size:26px; }
-  header p { margin:0; color:var(--abu); }
-  .card { background:#fff; border-radius:16px; padding:24px; box-shadow:0 4px 24px rgba(15,23,42,.08); }
-  label { display:block; font-weight:600; font-size:14px; margin:16px 0 6px; }
-  label:first-child { margin-top:0; }
-  input { width:100%; padding:12px 14px; border:1.5px solid #cbd5e1; border-radius:10px; font-size:15px; }
-  input:focus { outline:none; border-color:var(--tema); }
-  input[type=color] { padding:4px; height:48px; }
-  .hint { font-size:12px; color:var(--abu); margin-top:4px; }
-  button { width:100%; margin-top:24px; padding:14px; border:0; border-radius:10px; background:var(--tema); color:#fff; font-size:16px; font-weight:700; cursor:pointer; }
-  button:disabled { opacity:.55; cursor:wait; }
-  #status { margin-top:20px; font-size:14px; display:none; }
-  #status .run { padding:10px 12px; border:1px solid #e2e8f0; border-radius:10px; margin-top:8px; display:flex; justify-content:space-between; gap:8px; align-items:center; }
-  .badge { font-size:12px; font-weight:700; padding:3px 8px; border-radius:99px; background:#e0e7ff; color:#3730a3; white-space:nowrap; }
-  .badge.ok { background:#dcfce7; color:#166534; }
-  .badge.fail { background:#fee2e2; color:#991b1b; }
-  a.dl { color:var(--tema); font-weight:700; }
-  footer { text-align:center; color:var(--abu); font-size:13px; margin-top:24px; }
-  footer a { color:var(--tema); }
+  :root{
+    --tema:#2563EB; --bg:#eef2ff; --bg2:#f8fafc; --card:#ffffff; --teks:#0f172a;
+    --abu:#64748b; --garis:#e2e8f0; --input:#ffffff; --bayang:0 10px 40px rgba(37,99,235,.13);
+    --err:#dc2626;
+  }
+  [data-theme="dark"]{
+    --bg:#020617; --bg2:#0f172a; --card:#0f172a; --teks:#e2e8f0; --abu:#94a3b8;
+    --garis:#1e293b; --input:#1e293b; --bayang:0 10px 40px rgba(0,0,0,.5);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--teks);
+    background:linear-gradient(160deg,var(--bg) 0%,var(--bg2) 55%);min-height:100vh;transition:background .3s,color .3s}
+  .wrap{max-width:1060px;margin:0 auto;padding:20px 16px 70px}
+  header{display:flex;align-items:center;gap:14px;padding:10px 2px 4px}
+  header img{width:52px;height:52px;border-radius:14px;box-shadow:var(--bayang)}
+  header .t{flex:1}
+  header h1{margin:0;font-size:24px;letter-spacing:-.02em}
+  header p{margin:2px 0 0;color:var(--abu);font-size:14px}
+  .iconbtn{border:1.5px solid var(--garis);background:var(--card);color:var(--teks);width:44px;height:44px;
+    border-radius:12px;font-size:19px;cursor:pointer}
+  .hero{margin:22px 0 26px;text-align:center}
+  .hero h2{font-size:clamp(26px,5vw,40px);margin:0 0 8px;letter-spacing:-.03em;line-height:1.15}
+  .hero h2 .grad{background:linear-gradient(90deg,#2563EB,#7C3AED,#DB2777);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{color:var(--abu);margin:0 auto;max-width:560px;font-size:15px}
+  .langkah{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+  .langkah span{font-size:12.5px;font-weight:600;background:var(--card);border:1px solid var(--garis);
+    padding:7px 12px;border-radius:99px;color:var(--abu)}
+  .langkah b{color:var(--tema)}
+  .grid{display:grid;grid-template-columns:1fr 340px;gap:22px;align-items:start}
+  @media (max-width:860px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--garis);border-radius:20px;padding:24px;box-shadow:var(--bayang)}
+  .card h3{margin:0 0 4px;font-size:17px}
+  .card .sub{color:var(--abu);font-size:13px;margin:0 0 8px}
+  label{display:block;font-weight:600;font-size:14px;margin:18px 0 6px}
+  label .cnt{float:right;color:var(--abu);font-weight:400;font-size:12px}
+  input[type=text],select{width:100%;padding:12px 14px;border:1.5px solid var(--garis);border-radius:12px;
+    font-size:15px;background:var(--input);color:var(--teks);transition:border-color .15s}
+  input[type=text]:focus,select:focus{outline:none;border-color:var(--tema)}
+  input.invalid{border-color:var(--err)}
+  .hint{font-size:12px;color:var(--abu);margin-top:5px}
+  .hint.err{color:var(--err)}
+  .row{display:flex;gap:10px}
+  .row input{flex:1}
+  .dice{flex:0 0 auto;width:48px;border:1.5px solid var(--garis);background:var(--input);border-radius:12px;font-size:19px;cursor:pointer}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .chip{border:1.5px solid var(--garis);background:var(--input);color:var(--teks);font-size:13px;font-weight:600;
+    padding:8px 13px;border-radius:99px;cursor:pointer}
+  .chip:hover{border-color:var(--tema)}
+  .swatches{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}
+  .sw{width:34px;height:34px;border-radius:50%;border:3px solid transparent;cursor:pointer;padding:0}
+  .sw.sel{border-color:var(--teks);transform:scale(1.12)}
+  .colorrow{display:flex;gap:10px;align-items:center}
+  .colorrow input[type=color]{width:58px;height:48px;border:1.5px solid var(--garis);border-radius:12px;background:var(--input);padding:4px;cursor:pointer}
+  .colorrow input[type=text]{flex:1}
+  .switchrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 2px;border-bottom:1px dashed var(--garis)}
+  .switchrow .lbl{font-weight:600;font-size:14px}
+  .switchrow .dsc{font-size:12px;color:var(--abu)}
+  .sw2{position:relative;width:52px;height:29px;flex:0 0 auto;margin:0}
+  .sw2 input{opacity:0;width:0;height:0;position:absolute}
+  .sl{position:absolute;inset:0;background:#cbd5e1;border-radius:99px;cursor:pointer;transition:.2s}
+  .sl:before{content:"";position:absolute;width:23px;height:23px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+  .sw2 input:checked + .sl{background:var(--tema)}
+  .sw2 input:checked + .sl:before{transform:translateX(23px)}
+  .seg{display:flex;border:1.5px solid var(--garis);border-radius:12px;overflow:hidden}
+  .seg button{flex:1;padding:11px 4px;border:0;background:var(--input);color:var(--abu);font-weight:600;font-size:13.5px;cursor:pointer}
+  .seg button.sel{background:var(--tema);color:#fff}
+  .btn{width:100%;margin-top:22px;padding:15px;border:0;border-radius:13px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;
+    background:linear-gradient(90deg,#2563EB,#7C3AED);box-shadow:0 8px 24px rgba(37,99,235,.35);transition:transform .1s}
+  .btn:active{transform:scale(.985)}
+  .btn:disabled{opacity:.55;cursor:wait}
+  .btnrow{display:flex;gap:9px;margin-top:11px}
+  .btn2{flex:1;padding:11px;border-radius:11px;border:1.5px solid var(--garis);background:var(--input);color:var(--teks);
+    font-weight:600;font-size:13.5px;cursor:pointer}
+  #status{margin-top:18px;font-size:14px;display:none;border-top:1px dashed var(--garis);padding-top:14px;line-height:1.55}
+  #status .run{padding:10px 12px;border:1px solid var(--garis);border-radius:10px;margin-top:8px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .badge{font-size:12px;font-weight:700;padding:3px 9px;border-radius:99px;background:#e0e7ff;color:#3730a3;white-space:nowrap}
+  [data-theme="dark"] .badge{background:#312e81;color:#c7d2fe}
+  .badge.ok{background:#dcfce7;color:#166534}.badge.fail{background:#fee2e2;color:#991b1b}
+  a.dl{color:var(--tema);font-weight:700}
+  .prevcol{position:sticky;top:16px}
+  @media (max-width:860px){.prevcol{position:static}}
+  .phone{width:290px;max-width:100%;margin:6px auto 0;aspect-ratio:290/590;border-radius:42px;background:#000;
+    padding:11px;box-shadow:0 24px 60px rgba(2,6,23,.35)}
+  .screen{position:relative;width:100%;height:100%;border-radius:32px;overflow:hidden;background:#fff;color:#0f172a;display:flex;flex-direction:column}
+  .notch{position:absolute;top:7px;left:50%;transform:translateX(-50%);width:86px;height:19px;background:#000;border-radius:99px;z-index:30}
+  .statusbar{height:34px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 16px 3px;color:#fff;font-size:11px;font-weight:600;z-index:5;flex:0 0 auto}
+  .statusbar.hide{display:none}
+  .appbar{display:flex;align-items:center;gap:9px;padding:10px 12px;border-bottom:1px solid #e2e8f0;background:#f8fafc}
+  .appbar img{width:30px;height:30px;border-radius:8px;object-fit:cover;background:#e2e8f0}
+  .letterava{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px;flex:0 0 auto}
+  .appbar .nm{font-weight:700;font-size:13.5px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .appbar .dm{font-size:11px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .webbody{flex:1;padding:14px 13px;background:#fff}
+  .skl{border-radius:8px;background:linear-gradient(100deg,#e2e8f0 40%,#f1f5f9 50%,#e2e8f0 60%);background-size:200% 100%;animation:shim 1.6s infinite}
+  @keyframes shim{to{background-position:-200% 0}}
+  .navbar{height:40px;display:flex;align-items:center;justify-content:space-around;border-top:1px solid #e2e8f0;background:#f8fafc;font-size:15px;color:#475569;flex:0 0 auto}
+  .splash{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;color:#fff;transition:opacity .4s}
+  .splash.off{opacity:0;pointer-events:none}
+  .splash img{width:74px;height:74px;border-radius:20px;object-fit:cover;box-shadow:0 10px 26px rgba(0,0,0,.3);background:rgba(255,255,255,.15)}
+  .splash .snm{font-size:20px;font-weight:800;text-align:center;padding:0 18px}
+  .spin{width:27px;height:27px;border-radius:50%;border:3.5px solid rgba(255,255,255,.35);border-top-color:#fff;animation:sp .8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .prevnote{text-align:center;color:var(--abu);font-size:12.5px;margin-top:12px}
+  .prevnote button{background:none;border:0;color:var(--tema);font-weight:700;cursor:pointer;font-size:12.5px}
+  .hist{margin-top:22px}
+  .hitem{display:flex;gap:12px;align-items:center;padding:12px 4px;border-bottom:1px dashed var(--garis)}
+  .hitem:last-child{border-bottom:0}
+  .hitem img{width:38px;height:38px;border-radius:10px;object-fit:cover;background:#e2e8f0}
+  .hitem .inf{flex:1;min-width:0}
+  .hitem .nm{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hitem .mt{font-size:12px;color:var(--abu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hitem button{border:1px solid var(--garis);background:var(--input);color:var(--teks);border-radius:9px;padding:7px 10px;font-size:12.5px;font-weight:600;cursor:pointer}
+  .kosong{color:var(--abu);font-size:13.5px;padding:8px 0 2px}
+  footer{text-align:center;color:var(--abu);font-size:13px;margin-top:28px;line-height:1.9}
+  footer a{color:var(--tema);font-weight:600;text-decoration:none}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(90px);background:#0f172a;color:#fff;
+    padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 12px 34px rgba(0,0,0,.35);transition:transform .3s;z-index:99}
+  .toast.show{transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="logo">&#128241;</div>
-    <h1>Web to APK</h1>
-    <p>Isi form, tunggu beberapa menit, download APK-nya.</p>
+    <img src="icons/icon-192.png" alt="Logo Web to APK">
+    <div class="t">
+      <h1>Web to APK</h1>
+      <p>Ubah website jadi aplikasi Android — build oleh GitHub Actions</p>
+    </div>
+    <button class="iconbtn" id="darkBtn" title="Mode gelap / terang">🌙</button>
   </header>
 
-  <form class="card" id="form">
-    <label for="web_url">URL Website *</label>
-    <input id="web_url" type="text" inputmode="url" placeholder="https://websitekamu.com" required>
+  <div class="hero">
+    <h2>Website kamu, jadi aplikasi.<br><span class="grad">Tanpa coding, tanpa server.</span></h2>
+    <p>Isi form di bawah, GitHub Actions yang compile jadi APK, beberapa menit kemudian tinggal download dan install.</p>
+    <div class="langkah">
+      <span><b>1.</b> Isi form</span><span><b>2.</b> Klik Build</span><span><b>3.</b> Tunggu ±1–6 menit</span><span><b>4.</b> Download APK</span>
+    </div>
+  </div>
 
-    <label for="app_name">Nama Aplikasi *</label>
-    <input id="app_name" type="text" maxlength="50" placeholder="Aplikasi Saya" required>
+  <div class="grid">
+    <form class="card" id="form" novalidate>
+      <h3>Buat APK Baru</h3>
+      <p class="sub">Pratinjau di samping berubah langsung sambil kamu mengisi.</p>
 
-    <label for="package_id">Package ID *</label>
-    <input id="package_id" type="text" placeholder="com.contoh.app" pattern="[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+" required>
-    <div class="hint">Huruf kecil, minimal satu titik. Contoh: com.tokosaya.app</div>
+      <label for="web_url">URL Website *</label>
+      <input id="web_url" type="text" inputmode="url" placeholder="https://websitekamu.com" autocomplete="off">
+      <div class="hint" id="urlHint">Website yang mau dibungkus jadi aplikasi.</div>
 
-    <label for="icon_url">URL Icon (opsional)</label>
-    <input id="icon_url" type="text" inputmode="url" placeholder="https://websitekamu.com/icon.png">
-    <div class="hint">Gambar persegi PNG/JPG. Kosongkan untuk icon bawaan.</div>
+      <div class="chips" id="presets">
+        <button type="button" class="chip" data-url="https://example.com" data-name="Example WebApp">⭐ Example</button>
+        <button type="button" class="chip" data-url="https://id.wikipedia.org" data-name="Wikipedia ID">📚 Wikipedia</button>
+        <button type="button" class="chip" data-url="https://www.openstreetmap.org" data-name="Peta OSM">🗺️ OpenStreetMap</button>
+        <button type="button" class="chip" data-url="https://news.google.com" data-name="Google News">📰 Google News</button>
+      </div>
 
-    <label for="theme_color">Warna Tema</label>
-    <input id="theme_color" type="color" value="#2563EB">
+      <label for="app_name">Nama Aplikasi * <span class="cnt" id="nameCnt">0/50</span></label>
+      <input id="app_name" type="text" maxlength="50" placeholder="Aplikasi Saya" autocomplete="off">
 
-    <button type="submit" id="btn">&#128640; Build APK Saya</button>
-    <div id="status"></div>
-  </form>
+      <label for="package_id">Package ID *</label>
+      <div class="row">
+        <input id="package_id" type="text" placeholder="com.contoh.app" autocomplete="off">
+        <button type="button" class="dice" id="diceBtn" title="Acak package ID">🎲</button>
+      </div>
+      <div class="hint" id="pkgHint">Otomatis dibuat dari nama aplikasi. Huruf kecil + minimal satu titik.</div>
+
+      <label for="icon_url">URL Icon (opsional)</label>
+      <input id="icon_url" type="text" inputmode="url" placeholder="https://websitekamu.com/icon.png" autocomplete="off">
+      <div class="hint">Gambar persegi PNG/JPG. Kosong = pakai favicon website kamu otomatis.</div>
+
+      <label>Warna Tema</label>
+      <div class="colorrow">
+        <input id="theme_color" type="color" value="#2563EB">
+        <input id="theme_hex" type="text" value="#2563EB" maxlength="7">
+      </div>
+      <div class="swatches" id="swatches"></div>
+
+      <label>Tampilan &amp; Perilaku</label>
+      <div class="switchrow">
+        <div><div class="lbl">Splash Screen</div><div class="dsc">Layar pembuka warna tema + nama app</div></div>
+        <label class="sw2"><input type="checkbox" id="opt_splash" checked><span class="sl"></span></label>
+      </div>
+      <div class="switchrow">
+        <div><div class="lbl">Fullscreen</div><div class="dsc">Sembunyikan status bar Android</div></div>
+        <label class="sw2"><input type="checkbox" id="opt_fullscreen"><span class="sl"></span></label>
+      </div>
+      <div class="switchrow">
+        <div><div class="lbl">Pinch Zoom</div><div class="dsc">Izinkan cubit untuk memperbesar halaman</div></div>
+        <label class="sw2"><input type="checkbox" id="opt_zoom" checked><span class="sl"></span></label>
+      </div>
+
+      <label>Orientasi Layar</label>
+      <div class="seg" id="orientSeg">
+        <button type="button" data-v="unspecified" class="sel">Otomatis</button>
+        <button type="button" data-v="portrait">Potret</button>
+        <button type="button" data-v="landscape">Lanskap</button>
+      </div>
+
+      <button type="submit" class="btn" id="btn">🚀 Build APK Saya</button>
+      <div class="btnrow">
+        <button type="button" class="btn2" id="copyBtn">📋 Salin Ringkasan</button>
+        <button type="button" class="btn2" id="exportBtn">⬇️ Export</button>
+        <button type="button" class="btn2" id="importBtn">⬆️ Import</button>
+        <input type="file" id="importFile" accept="application/json" hidden>
+      </div>
+      <div id="status"></div>
+    </form>
+
+    <div class="prevcol">
+      <div class="card" style="padding:18px 14px">
+        <h3 style="text-align:center">Pratinjau Langsung</h3>
+        <p class="sub" style="text-align:center">Begini kira-kira tampilan app kamu</p>
+        <div class="phone">
+          <div class="screen">
+            <div class="notch"></div>
+            <div class="splash" id="pvSplash">
+              <img id="pvSplashIcon" alt="">
+              <div class="snm" id="pvSplashName">Aplikasi Saya</div>
+              <div class="spin"></div>
+            </div>
+            <div class="statusbar" id="pvStatus"><span>09:41</span><span>📶 🔋</span></div>
+            <div class="appbar">
+              <img id="pvIcon" alt=""><div class="letterava" id="pvLetter" style="display:none">A</div>
+              <div style="min-width:0">
+                <div class="nm" id="pvName">Aplikasi Saya</div>
+                <div class="dm" id="pvDomain">websitekamu.com</div>
+              </div>
+            </div>
+            <div class="webbody">
+              <div class="skl" style="height:104px;margin-bottom:11px"></div>
+              <div class="skl" style="height:15px;width:72%;margin-bottom:8px"></div>
+              <div class="skl" style="height:15px;width:92%;margin-bottom:8px"></div>
+              <div class="skl" style="height:15px;width:55%;margin-bottom:14px"></div>
+              <div class="skl" style="height:38px;width:46%;border-radius:11px"></div>
+            </div>
+            <div class="navbar"><span>‹</span><span>🏠</span><span>›</span></div>
+          </div>
+        </div>
+        <p class="prevnote">Splash screen muncul sebentar saat app dibuka.<br><button type="button" id="replayBtn">↻ Putar ulang splash</button></p>
+      </div>
+
+      <div class="card hist">
+        <h3>Riwayat Build Kamu</h3>
+        <p class="sub">Tersimpan di browser ini. Klik untuk pakai lagi konfigurasinya.</p>
+        <div id="histList"><div class="kosong">Belum ada build. Build pertama kamu akan muncul di sini.</div></div>
+        <div class="btnrow" id="histTools" style="display:none">
+          <button type="button" class="btn2" id="clearHist">🗑️ Hapus Semua Riwayat</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <footer>
-    Build dikerjakan oleh GitHub Actions &middot;
-    <a href="https://github.com/keika-sy/web-to-apk/releases" target="_blank" rel="noopener">Semua hasil build (Releases)</a>
+    Build dikerjakan GitHub Actions · APK di-sign keystore tetap, aman di-update menimpa versi lama<br>
+    <a href="https://github.com/keika-sy/web-to-apk/releases" target="_blank" rel="noopener">Semua Hasil Build (Releases)</a> ·
+    <a href="https://github.com/keika-sy/web-to-apk" target="_blank" rel="noopener">Kode Sumber</a>
   </footer>
 </div>
+<div class="toast" id="toast"></div>
 
 <script>
 // ==== KONFIGURASI ====
@@ -74,65 +276,256 @@
 // Selama kosong, tombol build membuka halaman GitHub Actions untuk trigger manual.
 const BACKEND_URL = "";
 const ACTIONS_URL = "https://github.com/keika-sy/web-to-apk/actions/workflows/build-apk.yml";
+const RELEASES_URL = "https://github.com/keika-sy/web-to-apk/releases";
+const SWATCHES = ["#2563EB","#7C3AED","#DB2777","#DC2626","#EA580C","#16A34A","#0891B2","#0F172A"];
 
-const form = document.getElementById("form");
-const btn = document.getElementById("btn");
-const statusEl = document.getElementById("status");
+const $ = (id) => document.getElementById(id);
+const els = { url:$("web_url"), name:$("app_name"), pkg:$("package_id"), icon:$("icon_url"),
+  color:$("theme_color"), hex:$("theme_hex"), splash:$("opt_splash"), fs:$("opt_fullscreen"), zoom:$("opt_zoom") };
+let orientation = "unspecified";
+let pkgTouched = false;
 
-function showStatus(html) { statusEl.style.display = "block"; statusEl.innerHTML = html; }
+// ---------- tema halaman (dark mode) ----------
+const darkBtn = $("darkBtn");
+function setTheme(t){ document.documentElement.dataset.theme = t; darkBtn.textContent = t === "dark" ? "☀️" : "🌙"; try { localStorage.setItem("wta-theme", t); } catch(e) {} }
+let savedTheme = null; try { savedTheme = localStorage.getItem("wta-theme"); } catch(e) {}
+setTheme(savedTheme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+darkBtn.onclick = () => setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
 
-async function pollStatus() {
+// ---------- util ----------
+function toast(msg){ const t = $("toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2400); }
+function domainOf(u){ try { return new URL(/^https?:\/\//i.test(u) ? u : "https://" + u).hostname; } catch(e) { return ""; } }
+function slug(s){ return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"").slice(0,24); }
+function faviconFor(u, iconUrl){
+  if (iconUrl) return iconUrl;
+  const d = domainOf(u); if (!d) return "";
+  return "https://www.google.com/s2/favicons?domain=" + encodeURIComponent(d) + "&sz=128";
+}
+function validPkg(p){ return /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/.test(p); }
+function validUrl(u){ const d = domainOf(u); return !!d && d.includes("."); }
+
+// ---------- swatches ----------
+const swWrap = $("swatches");
+SWATCHES.forEach(c => {
+  const b = document.createElement("button"); b.type = "button"; b.className = "sw"; b.style.background = c; b.title = c;
+  b.onclick = () => setColor(c); swWrap.appendChild(b);
+});
+function setColor(c){
+  c = c.toUpperCase();
+  els.color.value = c; els.hex.value = c;
+  document.querySelectorAll(".sw").forEach(x => x.classList.toggle("sel", x.title === c));
+  refreshPreview();
+}
+els.color.addEventListener("input", () => setColor(els.color.value));
+els.hex.addEventListener("change", () => { if (/^#?[0-9a-fA-F]{6}$/.test(els.hex.value)) setColor("#" + els.hex.value.replace("#","")); });
+
+// ---------- package otomatis ----------
+els.name.addEventListener("input", () => {
+  $("nameCnt").textContent = els.name.value.length + "/50";
+  if (!pkgTouched) els.pkg.value = els.name.value.trim() ? "com.webtoapk." + (slug(els.name.value) || "app") : "";
+  validatePkg(); refreshPreview();
+});
+els.pkg.addEventListener("input", () => { pkgTouched = true; validatePkg(); refreshPreview(); });
+$("diceBtn").onclick = () => {
+  pkgTouched = true;
+  const base = slug(els.name.value) || "app";
+  els.pkg.value = "com.webtoapk." + base + Math.floor(100 + Math.random() * 900);
+  validatePkg(); refreshPreview(); toast("Package ID diacak");
+};
+function validatePkg(){
+  const ok = validPkg(els.pkg.value.trim().toLowerCase());
+  els.pkg.classList.toggle("invalid", els.pkg.value.length > 0 && !ok);
+  const h = $("pkgHint");
+  h.textContent = ok ? "✅ Package ID valid." : "Huruf kecil + minimal satu titik. Contoh: com.tokosaya.app";
+  h.classList.toggle("err", els.pkg.value.length > 0 && !ok);
+  return ok;
+}
+
+// ---------- preset ----------
+document.querySelectorAll("#presets .chip").forEach(ch => ch.onclick = () => {
+  els.url.value = ch.dataset.url; els.name.value = ch.dataset.name;
+  pkgTouched = false; els.name.dispatchEvent(new Event("input")); els.url.dispatchEvent(new Event("input"));
+});
+
+// ---------- orientasi ----------
+document.querySelectorAll("#orientSeg button").forEach(b => b.onclick = () => {
+  orientation = b.dataset.v;
+  document.querySelectorAll("#orientSeg button").forEach(x => x.classList.toggle("sel", x === b));
+});
+
+// ---------- preview ----------
+function setImg(imgEl, letterEl, src, name, color){
+  const letter = (name || "A").trim().charAt(0).toUpperCase() || "A";
+  if (src) {
+    imgEl.style.display = ""; if (letterEl) letterEl.style.display = "none";
+    imgEl.onerror = () => { imgEl.style.display = "none"; if (letterEl) { letterEl.style.display = "flex"; letterEl.textContent = letter; letterEl.style.background = color; } };
+    if (imgEl.getAttribute("src") !== src) imgEl.src = src;
+  } else if (letterEl) {
+    imgEl.style.display = "none"; letterEl.style.display = "flex";
+    letterEl.textContent = letter; letterEl.style.background = color;
+  } else {
+    imgEl.style.display = "none";
+  }
+}
+function playSplash(){
+  const sp = $("pvSplash");
+  if (!els.splash.checked) { sp.classList.add("off"); return; }
+  sp.classList.remove("off");
+  clearTimeout(playSplash._t);
+  playSplash._t = setTimeout(() => sp.classList.add("off"), 1500);
+}
+$("replayBtn").onclick = playSplash;
+function refreshPreview(){
+  const color = (/^#[0-9a-fA-F]{6}$/.test(els.hex.value) ? els.hex.value : "#2563EB").toUpperCase();
+  const name = els.name.value.trim() || "Aplikasi Saya";
+  const fav = faviconFor(els.url.value.trim(), els.icon.value.trim());
+  $("pvStatus").style.background = color;
+  $("pvStatus").classList.toggle("hide", els.fs.checked);
+  $("pvSplash").style.background = color;
+  $("pvSplashName").textContent = name;
+  setImg($("pvSplashIcon"), null, fav, name, color);
+  setImg($("pvIcon"), $("pvLetter"), fav, name, color);
+  $("pvName").textContent = name;
+  $("pvDomain").textContent = domainOf(els.url.value.trim()) || "websitekamu.com";
+}
+els.url.addEventListener("input", () => {
+  const ok = validUrl(els.url.value.trim());
+  const h = $("urlHint");
+  h.textContent = els.url.value && !ok ? "URL sepertinya belum valid — pastikan ada domainnya, contoh: tokosaya.com" : "Website yang mau dibungkus jadi aplikasi.";
+  h.classList.toggle("err", !!els.url.value && !ok);
+  els.url.classList.toggle("invalid", !!els.url.value && !ok);
+  refreshPreview();
+});
+els.icon.addEventListener("input", refreshPreview);
+els.splash.addEventListener("change", () => { playSplash(); refreshPreview(); });
+els.fs.addEventListener("change", refreshPreview);
+function validateAll(){
+  let ok = true;
+  if (!validUrl(els.url.value.trim())) { els.url.classList.add("invalid"); ok = false; } else els.url.classList.remove("invalid");
+  if (!els.name.value.trim()) { els.name.classList.add("invalid"); ok = false; } else els.name.classList.remove("invalid");
+  if (!validatePkg()) ok = false;
+  return ok;
+}
+
+// ---------- konfigurasi ----------
+function collect(){
+  return {
+    web_url: els.url.value.trim(), app_name: els.name.value.trim(),
+    package_id: els.pkg.value.trim().toLowerCase(), icon_url: els.icon.value.trim(),
+    theme_color: els.hex.value.toUpperCase(),
+    fullscreen: els.fs.checked ? "true" : "false", splash: els.splash.checked ? "true" : "false",
+    orientation: orientation, zoom: els.zoom.checked ? "true" : "false"
+  };
+}
+function esc(s){ const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+function summaryText(c){
+  return ["Web to APK — ringkasan build",
+    "URL: " + c.web_url, "Nama app: " + c.app_name, "Package: " + c.package_id,
+    "Icon: " + (c.icon_url || "(favicon otomatis)"), "Warna: " + c.theme_color,
+    "Fullscreen: " + c.fullscreen + " | Splash: " + c.splash + " | Orientasi: " + c.orientation + " | Zoom: " + c.zoom,
+    "Hasil: " + RELEASES_URL].join("\n");
+}
+$("copyBtn").onclick = async () => {
+  try { await navigator.clipboard.writeText(summaryText(collect())); toast("📋 Ringkasan tersalin"); }
+  catch(e) { toast("Gagal menyalin — clipboard diblokir browser"); }
+};
+$("exportBtn").onclick = () => {
+  const blob = new Blob([JSON.stringify(collect(), null, 2)], { type: "application/json" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = "webtoapk-config.json"; a.click(); URL.revokeObjectURL(a.href); toast("⬇️ Konfigurasi diexport");
+};
+$("importBtn").onclick = () => $("importFile").click();
+$("importFile").addEventListener("change", async (e) => {
+  try { applyConfig(JSON.parse(await e.target.files[0].text())); toast("⬆️ Konfigurasi dimuat"); }
+  catch(err) { toast("File konfigurasi tidak valid"); }
+  e.target.value = "";
+});
+function applyConfig(c){
+  els.url.value = c.web_url || ""; els.name.value = c.app_name || "";
+  pkgTouched = true; els.pkg.value = c.package_id || ""; els.icon.value = c.icon_url || "";
+  if (c.theme_color) setColor(c.theme_color);
+  els.fs.checked = c.fullscreen === "true" || c.fullscreen === true;
+  els.splash.checked = !(c.splash === "false" || c.splash === false);
+  els.zoom.checked = !(c.zoom === "false" || c.zoom === false);
+  if (c.orientation) document.querySelectorAll("#orientSeg button").forEach(b => { if (b.dataset.v === c.orientation) b.click(); });
+  $("nameCnt").textContent = els.name.value.length + "/50";
+  validatePkg(); playSplash(); refreshPreview();
+}
+
+// ---------- riwayat ----------
+const HKEY = "wta-history";
+function getHist(){ try { return JSON.parse(localStorage.getItem(HKEY)) || []; } catch(e) { return []; } }
+function renderHist(){
+  const list = getHist(); const box = $("histList");
+  $("histTools").style.display = list.length ? "flex" : "none";
+  if (!list.length) { box.innerHTML = '<div class="kosong">Belum ada build. Build pertama kamu akan muncul di sini.</div>'; return; }
+  box.innerHTML = "";
+  list.forEach((c, i) => {
+    const d = document.createElement("div"); d.className = "hitem";
+    const fav = faviconFor(c.web_url, c.icon_url);
+    d.innerHTML = (fav ? '<img alt="">' : "") +
+      '<div class="inf"><div class="nm"></div><div class="mt"></div></div>' +
+      '<button data-a="use">Pakai</button><button data-a="del">✕</button>';
+    if (fav) { const im = d.querySelector("img"); im.src = fav; im.onerror = () => im.remove(); }
+    d.querySelector(".nm").textContent = c.app_name;
+    d.querySelector(".mt").textContent = c.package_id + " · " + new Date(c.ts).toLocaleString("id-ID");
+    d.querySelector('[data-a="use"]').onclick = () => { applyConfig(c); window.scrollTo({ top: 0, behavior: "smooth" }); toast("Konfigurasi dimuat dari riwayat"); };
+    d.querySelector('[data-a="del"]').onclick = () => { const h = getHist(); h.splice(i, 1); try { localStorage.setItem(HKEY, JSON.stringify(h)); } catch(e) {} renderHist(); };
+    box.appendChild(d);
+  });
+}
+$("clearHist").onclick = () => { try { localStorage.removeItem(HKEY); } catch(e) {} renderHist(); toast("Riwayat dihapus"); };
+function pushHist(c){ const h = getHist().filter(x => x.package_id !== c.package_id); h.unshift(Object.assign({}, c, { ts: Date.now() })); try { localStorage.setItem(HKEY, JSON.stringify(h.slice(0, 8))); } catch(e) {} renderHist(); }
+
+// ---------- build ----------
+const statusEl = $("status"), btn = $("btn");
+function showStatus(html){ statusEl.style.display = "block"; statusEl.innerHTML = html; }
+async function pollStatus(){
   try {
-    const r = await fetch(BACKEND_URL + "/status");
-    const data = await r.json();
+    const r = await fetch(BACKEND_URL + "/status"); const data = await r.json();
     if (!data.runs || !data.runs.length) return;
     let html = "<b>Build terakhir:</b>";
     for (const run of data.runs.slice(0, 3)) {
       const badge = run.conclusion === "success" ? '<span class="badge ok">Selesai</span>'
-        : run.conclusion === "failure" ? '<span class="badge fail">Gagal</span>'
-        : '<span class="badge">Proses…</span>';
-      html += `<div class="run"><span>#${run.run_number} — ${run.status}</span>${badge}</div>`;
+        : run.conclusion === "failure" ? '<span class="badge fail">Gagal</span>' : '<span class="badge">Proses…</span>';
+      html += '<div class="run"><span>#' + run.run_number + " — " + run.status + "</span>" + badge + "</div>";
     }
-    html += '<p>Kalau sudah <b>Selesai</b>, APK-nya ada di <a class="dl" href="https://github.com/keika-sy/web-to-apk/releases" target="_blank" rel="noopener">halaman Releases</a>.</p>';
+    html += '<p>Kalau sudah <b>Selesai</b>, APK-nya ada di <a class="dl" href="' + RELEASES_URL + '" target="_blank" rel="noopener">halaman Releases</a>.</p>';
     showStatus(html);
-  } catch (e) { /* status bersifat informatif saja */ }
+  } catch(e) { /* informatif saja */ }
 }
-
-form.addEventListener("submit", async (e) => {
+$("form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const payload = {
-    web_url: document.getElementById("web_url").value.trim(),
-    app_name: document.getElementById("app_name").value.trim(),
-    package_id: document.getElementById("package_id").value.trim().toLowerCase(),
-    icon_url: document.getElementById("icon_url").value.trim(),
-    theme_color: document.getElementById("theme_color").value.toUpperCase(),
-  };
-
+  if (!validateAll()) { toast("Ada isian yang belum valid — cek yang berbingkai merah"); return; }
+  const c = collect(); pushHist(c);
   if (!BACKEND_URL) {
-    showStatus(`Backend belum dihubungkan. Untuk build sekarang, trigger manual di GitHub Actions `
-      + `(login dulu sebagai pemilik repo), isi persis data form ini:<br>`
-      + `<a class="dl" href="${ACTIONS_URL}" target="_blank" rel="noopener">Buka halaman Run workflow</a>`);
+    showStatus("<b>Konfigurasi siap!</b> Backend web belum dihubungkan, jadi build-nya trigger manual sekali klik:" +
+      "<ol style='margin:8px 0;padding-left:20px;line-height:1.9'>" +
+      "<li>Klik tombol di bawah (login GitHub sebagai pemilik repo)</li>" +
+      "<li>Klik <b>Run workflow</b>, isi persis: URL <b>" + esc(c.web_url) + "</b>, nama <b>" + esc(c.app_name) + "</b>, package <b>" + esc(c.package_id) + "</b>" +
+      ", warna <b>" + esc(c.theme_color) + "</b>, fullscreen <b>" + c.fullscreen + "</b>, splash <b>" + c.splash + "</b>, orientasi <b>" + c.orientation + "</b>, zoom <b>" + c.zoom + "</b></li>" +
+      "<li>Tunggu ±1–6 menit, download APK-nya di Releases</li></ol>" +
+      '<a class="dl" href="' + ACTIONS_URL + '" target="_blank" rel="noopener">Buka halaman Run workflow →</a>');
+    statusEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
     return;
   }
-
   btn.disabled = true; btn.textContent = "Mengirim…";
   try {
-    const r = await fetch(BACKEND_URL + "/build", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    const r = await fetch(BACKEND_URL + "/build", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(c) });
     const data = await r.json();
     if (!r.ok) throw new Error(data.error || "Gagal memicu build");
-    showStatus("&#9989; Build dimulai! Biasanya 3–6 menit. Halaman ini cek status otomatis tiap 20 detik.");
-    pollStatus();
-    setInterval(pollStatus, 20000);
-  } catch (err) {
-    showStatus("&#10060; " + err.message);
-  } finally {
-    btn.disabled = false; btn.innerHTML = "&#128640; Build APK Saya";
-  }
+    showStatus("✅ Build dimulai! Biasanya 1–6 menit. Status dicek otomatis tiap 20 detik.");
+    pollStatus(); setInterval(pollStatus, 20000);
+  } catch(err) { showStatus("❌ " + esc(err.message)); }
+  finally { btn.disabled = false; btn.textContent = "🚀 Build APK Saya"; }
 });
+
+// ---------- init ----------
+setColor("#2563EB");
+renderHist(); refreshPreview(); playSplash();
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
 </script>
 </body>
 </html>

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Inject build inputs (URL, app name, package id, theme color) into the template.
+"""Inject build inputs into the WebToAPK template.
 
-Replaces the __TOKEN__ placeholders committed in the template. Runs inside
-GitHub Actions before the Gradle build; can also be run locally for a test build.
+Replaces __TOKEN__ placeholders committed in the template. Runs inside
+GitHub Actions before the Gradle build; can also be run locally.
 """
 import argparse, html, re, sys
 
@@ -10,11 +10,19 @@ FILES = {
     "app/build.gradle": ["__APP_ID__"],
     "app/src/main/res/values/strings.xml": ["__APP_NAME__"],
     "app/src/main/res/values/colors.xml": ["__THEME_COLOR__"],
-    "app/src/main/java/com/webtoapk/template/MainActivity.java": ["__WEB_URL__", "__THEME_COLOR__"],
+    "app/src/main/AndroidManifest.xml": ["__ORIENTATION__"],
+    "app/src/main/java/com/webtoapk/template/MainActivity.java": [
+        "__WEB_URL__", "__THEME_COLOR__", "__FULLSCREEN__", "__SPLASH__", "__ZOOM__"],
 }
 
 def java_escape(s):
     return s.replace("\\", "\\\\").replace('"', '\\"')
+
+def as_bool(v, label):
+    if isinstance(v, bool): return v
+    if str(v).lower() in ("true", "1", "yes", "on"): return True
+    if str(v).lower() in ("false", "0", "no", "off"): return False
+    sys.exit(f"Nilai {label} tidak valid: {v} (pakai true/false)")
 
 def main():
     ap = argparse.ArgumentParser()
@@ -22,6 +30,11 @@ def main():
     ap.add_argument("--name", required=True)
     ap.add_argument("--package", required=True)
     ap.add_argument("--color", default="#2563EB")
+    ap.add_argument("--fullscreen", default="false")
+    ap.add_argument("--splash", default="true")
+    ap.add_argument("--orientation", default="unspecified",
+                    choices=["unspecified", "portrait", "landscape"])
+    ap.add_argument("--zoom", default="true")
     a = ap.parse_args()
 
     url = a.url.strip()
@@ -48,21 +61,21 @@ def main():
         "__APP_NAME__": html.escape(name, quote=True),
         "__WEB_URL__": java_escape(url),
         "__THEME_COLOR__": color,
+        "__ORIENTATION__": a.orientation,
+        "__FULLSCREEN__": "true" if as_bool(a.fullscreen, "fullscreen") else "false",
+        "__SPLASH__": "true" if as_bool(a.splash, "splash") else "false",
+        "__ZOOM__": "true" if as_bool(a.zoom, "zoom") else "false",
     }
-    # strings.xml gets the XML-escaped name; MainActivity gets plain values.
     for path, tokens in FILES.items():
         with open(path) as f: text = f.read()
         for t in tokens:
-            v = values[t]
-            if path.endswith("MainActivity.java") and t == "__APP_NAME__":
-                v = java_escape(name)
-            text = text.replace(t, v)
+            text = text.replace(t, values[t])
         with open(path, "w") as f: f.write(text)
         print(f"customized {path}: {tokens}")
 
     with open("build-info.txt", "w") as f:
-        f.write(f"url={url}\nname={name}\npackage={pkg}\ncolor={color}\n")
-    print(f"OK -> {name} | {pkg} | {url} | {color}")
+        for k, v in values.items(): f.write(f"{k}={v}\n")
+    print(f"OK -> {name} | {pkg} | {url} | {color} | fs={values['__FULLSCREEN__']} splash={values['__SPLASH__']} orient={a.orientation} zoom={values['__ZOOM__']}")
 
 if __name__ == "__main__":
     main()

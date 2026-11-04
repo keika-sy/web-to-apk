@@ -35,12 +35,24 @@ halaman Actions (tetap berfungsi untuk pemilik repo).
 
 ## Template APK
 
-- WebView: JavaScript + DOM storage aktif, progress bar, zoom
+- WebView: JavaScript + DOM storage aktif, progress bar
+- **Splash screen** warna tema + nama app (bisa dimatikan)
+- **Mode fullscreen** (status bar disembunyikan), **orientasi** otomatis/potret/lanskap,
+  **pinch-zoom** bisa diatur
 - Link non-http (WhatsApp, telp, email, Maps) dibuka di aplikasi aslinya
 - Upload file dari halaman web didukung, download dibuka via sistem
 - Halaman error offline custom + tombol coba lagi, tombol Back mengikuti history
 - Icon: default globe; kalau URL icon diisi, digenerate ke semua density
   (termasuk versi bulat) saat build
+
+## Fitur web-nya
+
+- Pratinjau HP langsung (nama, favicon, warna, splash, status bar ikut berubah)
+- Mode gelap, 8 warna preset + color picker, package ID otomatis dari nama app
+  (+ tombol acak), validasi langsung
+- Preset situs contoh, riwayat build di browser (klik untuk pakai lagi)
+- Export / import konfigurasi JSON, salin ringkasan build
+- Bisa di-install sebagai PWA (manifest + service worker)
 
 ## Signing
 

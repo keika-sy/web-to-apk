@@ -2,11 +2,13 @@ package com.webtoapk.template;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
+import android.view.WindowManager;
 import android.webkit.DownloadListener;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -23,31 +25,47 @@ public class MainActivity extends Activity {
     // Replaced by scripts/customize.py during the GitHub Actions build.
     private static final String WEB_URL = "__WEB_URL__";
     private static final String THEME_COLOR = "__THEME_COLOR__";
+    private static final boolean FULLSCREEN = __FULLSCREEN__;
+    private static final boolean SPLASH_ENABLED = __SPLASH__;
+    private static final boolean ZOOM_ENABLED = __ZOOM__;
 
     private WebView webView;
     private ProgressBar progressBar;
+    private View splashView;
     private ValueCallback<Uri[]> fileCallback;
     private static final int FILE_CHOOSER_REQUEST = 1001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (FULLSCREEN) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        }
         setContentView(R.layout.activity_main);
 
         try {
             int c = Color.parseColor(THEME_COLOR);
-            getWindow().setStatusBarColor(c);
+            if (!FULLSCREEN) getWindow().setStatusBarColor(c);
         } catch (Exception ignored) { }
 
         progressBar = findViewById(R.id.progress);
         webView = findViewById(R.id.webview);
+        splashView = findViewById(R.id.splash);
+        if (SPLASH_ENABLED) {
+            splashView.setVisibility(View.VISIBLE);
+            // Safety net: never trap the user on the splash screen.
+            new Handler(Looper.getMainLooper()).postDelayed(this::hideSplash, 9000);
+        } else {
+            splashView.setVisibility(View.GONE);
+        }
 
         WebSettings s = webView.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
         s.setLoadWithOverviewMode(true);
         s.setUseWideViewPort(true);
-        s.setBuiltInZoomControls(true);
+        s.setBuiltInZoomControls(ZOOM_ENABLED);
         s.setDisplayZoomControls(false);
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
@@ -60,7 +78,6 @@ public class MainActivity extends Activity {
                 if (scheme.equals("http") || scheme.equals("https")) {
                     return false; // stay inside the WebView
                 }
-                // tel:, mailto:, intent:, sms:, geo:, market: -> hand to the system
                 try {
                     Intent i = scheme.equals("intent")
                             ? Intent.parseUri(uri.toString(), Intent.URI_INTENT_SCHEME)
@@ -73,8 +90,14 @@ public class MainActivity extends Activity {
             }
 
             @Override
+            public void onPageFinished(WebView view, String url) {
+                hideSplash();
+            }
+
+            @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 if (request.isForMainFrame()) {
+                    hideSplash();
                     String html = "<html><body style='font-family:sans-serif;text-align:center;padding:48px 24px'>"
                             + "<h2>&#128268; Tidak ada koneksi</h2>"
                             + "<p>Halaman gagal dimuat. Periksa internet kamu lalu coba lagi.</p>"
@@ -121,6 +144,15 @@ public class MainActivity extends Activity {
 
         if (savedInstanceState == null) {
             webView.loadUrl(WEB_URL);
+        } else {
+            hideSplash();
+        }
+    }
+
+    private void hideSplash() {
+        if (splashView != null && splashView.getVisibility() == View.VISIBLE) {
+            splashView.animate().alpha(0f).setDuration(250)
+                    .withEndAction(() -> splashView.setVisibility(View.GONE)).start();
         }
     }
 

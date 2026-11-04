@@ -49,12 +49,16 @@ export default {
     if (request.method === "POST" && url.pathname === "/build") {
       let body;
       try { body = await request.json(); } catch { return json({ error: "Body bukan JSON" }, 400); }
-      const { web_url, app_name, package_id, icon_url = "", theme_color = "#2563EB" } = body || {};
+      const { web_url, app_name, package_id, icon_url = "", theme_color = "#2563EB",
+             fullscreen = "false", splash = "true", orientation = "unspecified", zoom = "true" } = body || {};
       if (!web_url || !app_name || !package_id) return json({ error: "web_url, app_name, package_id wajib diisi" }, 400);
       if (!/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/.test(String(package_id).toLowerCase()))
         return json({ error: "Package ID tidak valid" }, 400);
       if (!/^https?:\/\//i.test(web_url) && !/^[^\s]+\.[^\s]+/.test(web_url))
         return json({ error: "URL tidak valid" }, 400);
+      if (!["unspecified", "portrait", "landscape"].includes(String(orientation)))
+        return json({ error: "Orientasi tidak valid" }, 400);
+      const boolStr = (v) => (v === true || v === "true") ? "true" : "false";
 
       const res = await gh(env, `/actions/workflows/${WORKFLOW_FILE}/dispatches`, {
         method: "POST",
@@ -66,6 +70,10 @@ export default {
             package_id: String(package_id).toLowerCase(),
             icon_url: String(icon_url || ""),
             theme_color: String(theme_color || "#2563EB"),
+            fullscreen: boolStr(fullscreen),
+            splash: boolStr(splash),
+            orientation: String(orientation),
+            zoom: boolStr(zoom),
           },
         }),
       });
