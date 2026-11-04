@@ -8,7 +8,7 @@
 //   1. cd backend && npx wrangler deploy
 //   2. npx wrangler secret put GH_TOKEN     (fine-grained PAT: repo web-to-apk, Actions: read+write)
 //   3. (opsional) ubah ALLOWED_ORIGIN di bawah / wrangler.toml vars
-//   4. Salin URL Worker hasil deploy ke web/index.html -> const BACKEND_URL
+//   4. Salin URL Worker hasil deploy ke docs/index.html -> const BACKEND_URL
 
 const GH_OWNER = "keika-sy";
 const GH_REPO = "web-to-apk";

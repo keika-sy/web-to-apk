@@ -21,14 +21,14 @@ Form web  ->  Cloudflare Worker (backend tipis, pegang token)
 
 ## Aktifkan form web-nya
 
-Web statis ada di folder `web/` (bisa di-host GitHub Pages: Settings → Pages →
-branch `main`, folder `/web`). Form butuh backend kecil supaya token GitHub
+Web statis ada di folder `docs/` (bisa di-host GitHub Pages: Settings → Pages →
+branch `main`, folder `/docs`). Form butuh backend kecil supaya token GitHub
 tidak bocor ke browser:
 
 1. `cd backend && npx wrangler deploy`
 2. `npx wrangler secret put GH_TOKEN` — fine-grained PAT khusus repo ini,
    permission **Actions: Read and write**
-3. Salin URL Worker ke `web/index.html` → `const BACKEND_URL = "..."`
+3. Salin URL Worker ke `docs/index.html` → `const BACKEND_URL = "..."`
 
 Selama `BACKEND_URL` kosong, form menampilkan tombol trigger manual ke
 halaman Actions (tetap berfungsi untuk pemilik repo).
