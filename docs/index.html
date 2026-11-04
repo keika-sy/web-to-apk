@@ -487,7 +487,7 @@ function renderHist(){
     const fav = faviconFor(c.web_url, c.icon_url);
     d.innerHTML = (fav ? '<img alt="">' : "") +
       '<div class="inf"><div class="nm"></div><div class="mt"></div></div>' +
-      '<button data-a="use">Pakai</button><button data-a="del">✕</button>';
+      '<button data-a="use">Pakai</button><button data-a="del"><i class="fa-solid fa-xmark"></i></button>';
     if (fav) { const im = d.querySelector("img"); im.src = fav; im.onerror = () => im.remove(); }
     d.querySelector(".nm").textContent = c.app_name;
     d.querySelector(".mt").textContent = c.package_id + " · " + new Date(c.ts).toLocaleString("id-ID");
